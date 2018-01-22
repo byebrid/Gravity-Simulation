@@ -1,0 +1,54 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+#gravitational constant
+gravConstant = 6.67408 * 10**-11
+
+#Setting up the objects. Acceleration doesn't change anything here so don't touch it.
+Obj1 = {'Mass': 5000, 'Velocity':  0, 'Position': [0], 'Acceleration': 0}
+
+Obj2 = {'Mass': 200, 'Velocity':  0, 'Position': [500], 'Acceleration': 0}
+
+#Determining the distance between objects
+distance = Obj2['Position'][0] - Obj1['Position'][0]
+
+#Setting up time list (for graphing) and timeSteps
+time = [0]
+timeStep = 150
+
+#Running the simulation until they collide
+while distance > 0:
+    #Determining force produced by both objects (EQUAL and opposite)
+    Force = Obj1['Mass'] * Obj2['Mass'] * gravConstant / distance**2
+    
+    #Determining how this force will accelerate them
+    Obj1['Acceleration'] = Force / Obj1['Mass']
+    Obj2['Acceleration'] = -Force / Obj2['Mass']
+    
+    #just getting their positions to make next lines easier to digest
+    pos1 = Obj1['Position']
+    pos2 = Obj2['Position']
+    
+    #adding new positions to lists
+    pos1.append(pos1[len(pos1) - 1] + Obj1['Velocity'] * timeStep + 0.5 * Obj1['Acceleration'] * timeStep**2)
+    pos2.append(pos2[len(pos2) - 1] + Obj2['Velocity'] * timeStep + 0.5 * Obj2['Acceleration'] * timeStep**2)
+    
+    #calculating their new velocities
+    Obj1['Velocity'] += Obj1['Acceleration'] * timeStep
+    Obj2['Velocity'] += Obj2['Acceleration'] * timeStep
+
+    #calculating their distance again
+    distance = pos2[len(pos2) - 1] - pos1[len(pos1) - 1]
+
+    #just adding onto time list
+    time.append(time[len(time)-1] + timeStep)
+    
+    print 'Obj1 Pos =',pos1[len(pos1) - 1]
+    print 'Obj2 Pos =',pos2[len(pos2) - 1]
+    
+print "They collided!"
+
+plt.plot(time,Obj1['Position'],time,Obj2['Position'])
+plt.ylabel('Position')
+plt.xlabel('Time')
+plt.show()
