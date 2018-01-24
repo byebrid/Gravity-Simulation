@@ -1,0 +1,38 @@
+import numpy as np
+
+numOfObjects = 3
+objList = []
+gravConstant =  6.674 * 10**-11
+
+def calcGrav(obj1,obj2):
+    if objList.index(obj2) > objList.index(obj1):
+        d = obj1['distances'][objList.index(obj2) - 1]
+        f = 1
+    else:
+        d = obj1['distances'][objList.index(obj2)]
+        f = - 1
+    f *= obj1['mass'] * obj2['mass'] * gravConstant / d**2
+    return f
+
+for obj in range(numOfObjects):
+    objList.append({'acceleration': 0, 'distances': [], 'mass': 0, 'forces': [], 'velocity': 0, 'positions': []})
+    
+for obj in objList:
+    print 'For object number', objList.index(obj), ':'
+    obj['mass'] = input('Mass?')
+    obj['positions'].append(input('Position?'))
+    
+for obj1 in objList:
+    for obj2 in objList:
+        if obj1 == obj2:
+            continue
+        else:
+            d = obj2['positions'][0] - obj1['positions'][0]
+            obj1['distances'].append(d)
+            
+for obj1 in objList:
+    for obj2 in objList:
+        if obj1 == obj2:
+            continue
+        else:
+            obj1['forces'].append(calcGrav(obj1, obj2))
