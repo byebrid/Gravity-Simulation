@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 
-
-numOfObjects = 3
+numOfObjects = 5
 objList = []
 gravConstant =  6.674 * 10**-11
 time = [0]
@@ -33,6 +32,7 @@ for obj in objList:
     obj['mass'] = input('Mass?')
     obj['positions'].append(input('Position?'))
     
+    #this sets up the empty elements for distances and forces
     for item in range(numOfObjects - 1):
         obj['distances'].append(0)
         obj['forces'].append(0)
@@ -92,4 +92,3 @@ print objList
 plt.ylabel('Position')
 plt.xlabel('Time')
 plt.show()
-    
