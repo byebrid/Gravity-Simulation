@@ -1,0 +1,95 @@
+import matplotlib.pyplot as plt
+
+
+numOfObjects = 3
+objList = []
+gravConstant =  6.674 * 10**-11
+time = [0]
+timeStep = 50
+
+def lastInList(objx, propertyx):
+    length = len(objx[propertyx])
+    lastItem = objx[propertyx][length - 1]
+    return lastItem
+
+#function that finds gravitational force between two objects
+def calcGrav(obj1,obj2):
+    if objList.index(obj2) > objList.index(obj1):
+        d = obj1['distances'][objList.index(obj2) - 1]
+        f = 1
+    else:
+        d = obj1['distances'][objList.index(obj2)]
+        f = - 1
+    f *= obj1['mass'] * obj2['mass'] * gravConstant / d**2
+    return f
+
+#this sets up templates for objects
+for obj in range(numOfObjects):
+    objList.append({'acceleration': 0, 'distances': [], 'mass': 0, 'forces': [], 'velocity': 0, 'positions': []})
+   
+#this records all masses and positions of objects 
+for obj in objList:
+    print 'For object number', objList.index(obj), ':'
+    obj['mass'] = input('Mass?')
+    obj['positions'].append(input('Position?'))
+    
+    for item in range(numOfObjects - 1):
+        obj['distances'].append(0)
+        obj['forces'].append(0)
+        
+print objList
+
+i = 14000
+
+while i > 0:
+    i -= 1
+    
+    #this finds all distance between objects (includes direction)    
+    for obj1 in objList:
+        thisStep = False
+        for obj2 in range(numOfObjects - 1):
+            if objList.index(obj1) == obj2:
+                thisStep = True
+                continue
+            elif thisStep == False:
+                obj1['distances'][obj2] = lastInList(objList[obj2], 'positions') - lastInList(obj1, 'positions')
+            else:
+                obj1['distances'][obj2 - 1] = lastInList(objList[obj2], 'positions') - lastInList(obj1, 'positions')
+
+                
+    #this finds all forces acting on the objects. The forces could be summed, but this is done instead during the acceleration calculations            
+    for obj1 in objList:
+        thisStep = False
+        for obj2 in range(numOfObjects - 1):
+            if objList.index(obj1) == obj2:
+                thisStep = True
+                continue
+            elif thisStep == False:
+                obj1['forces'][obj2] = calcGrav(obj1, objList[obj2])
+            else:
+                obj1['forces'][obj2 - 1] = calcGrav(obj1, objList[obj2])
+    
+    #this finds net acceleration for each object
+    for obj in objList:
+        a = 0
+        for item in range(numOfObjects - 1):
+            a += obj['forces'][item] / obj['mass']
+        obj['acceleration'] = a
+        
+    for obj in objList:
+        #s = ut + 0.5at^2
+        s = obj['velocity'] * timeStep + 0.5 * obj['acceleration'] * timeStep**2
+        obj['positions'].append(s + lastInList(obj, 'positions'))
+        
+        obj['velocity'] += obj['acceleration'] * timeStep
+        
+    time.append(time[len(time) - 1] + timeStep)
+
+for obj in objList:
+    plt.plot(time, obj['positions'])
+ 
+print objList
+plt.ylabel('Position')
+plt.xlabel('Time')
+plt.show()
+    
