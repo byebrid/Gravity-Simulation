@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
-import numpy as np
-
+#THERE IS AN ISSUE WITH THE TESTFORCOLLISIONS FUNCTION WHERE IT LOOPS THROUGH OBJLIST WHILE SOME OBJS MAY BE DESTROYED
 numOfObjects = 4
 objList = []
 deadObjList = []
@@ -30,7 +29,16 @@ def testForCollisions(tol):
                 #using new object's momentum to find its velocity
                 newVelocity = netMomentum / totalMass
                 #making the new object in the list with its new mass, position and velocity
-                objList.append({'acceleration': 0, 'distances': [], 'mass': totalMass, 'forces': [], 'velocity': newVelocity, 'positions': [newPosition], 'steps': 0, 'initStep': globalSteps})
+                objList.append({'acceleration': 0, 
+                                'distances': [], 
+                                'mass': totalMass, 
+                                'forces': [], 
+                                'velocity': newVelocity, 
+                                'positions': [newPosition], 
+                                'steps': 0, 
+                                'initStep': globalSteps,
+                                'deadStep': 0
+                                })
                 #setting up deadSteps so I know where on the timeline to plot them later on
                 obj1['deadStep'] = globalSteps
                 obj2['deadStep'] = globalSteps
@@ -58,7 +66,15 @@ def calcGrav(obj1,obj2):
 
 #this sets up templates for objects
 for obj in range(numOfObjects):
-    objList.append({'acceleration': 0, 'distances': [], 'mass': 0, 'forces': [], 'velocity': 0, 'positions': [], 'steps': 0, 'initStep': 0, 'deadStep': 0})
+    objList.append({'acceleration': 0, 
+                    'distances': [], 
+                    'mass': 0, 
+                    'forces': [], 
+                    'velocity': 0, 
+                    'positions': [], 
+                    'steps': 0, 
+                    'initStep': 0, 
+                    'deadStep': 0})
    
 #this records all masses and positions of objects 
 for obj in objList:
