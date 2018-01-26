@@ -1,11 +1,14 @@
 import matplotlib.pyplot as plt
 #THERE IS AN ISSUE WITH THE TESTFORCOLLISIONS FUNCTION WHERE IT LOOPS THROUGH OBJLIST WHILE SOME OBJS MAY BE DESTROYED
-numOfObjects = 4
+numOfObjects = 5
+timeStep = 50
+numOfSteps = 25000
+
+globalSteps = 0
 objList = []
 deadObjList = []
 gravConstant =  6.674 * 10**-11
 time = [0]
-timeStep = 50
 
 def lastInList(objx, propertyx):
     length = len(objx[propertyx])
@@ -13,12 +16,13 @@ def lastInList(objx, propertyx):
     return lastItem
 
 def testForCollisions(tol):
+    collisionCount = 0
     for obj1 in objList:
         for obj2 in objList:
             if obj1 == obj2:
                 continue
             #if the objects are within the tolerance variable difference (which I can change as the argument)
-            elif abs(lastInList(obj1, 'positions') - lastInList(obj2, 'positions')) < tol:
+            elif abs(lastInList(obj1, 'positions') - lastInList(obj2, 'positions')) < tol and objList.index(obj1) < len(objList) - collisionCount and objList.index(obj2) < len(objList) - collisionCount:
                 print 'this step occurred'
                 #summing the masses to get the mass of the new object
                 totalMass = obj1['mass'] + obj2['mass']
@@ -52,6 +56,7 @@ def testForCollisions(tol):
                     objList[len(objList) - 1]['distances'].append(0)
                     objList[len(objList) - 1]['forces'].append(0)
                     
+                collisionCount += 1                 
  
 #function that finds gravitational force between two objects
 def calcGrav(obj1,obj2):
@@ -87,12 +92,8 @@ for obj in objList:
         obj['distances'].append(0)
         obj['forces'].append(0)
 
-i = 22000
-
-globalSteps = 0
-
-while i > 0:
-    i -= 1
+while numOfSteps > 0:
+    numOfSteps -= 1
     globalSteps += 1
     numOfObjects = len(objList)
     #I believe this sorts by position but I'm not sure
@@ -111,7 +112,6 @@ while i > 0:
             else:
                 obj1['distances'][obj2 - 1] = lastInList(objList[obj2], 'positions') - lastInList(obj1, 'positions')
 
-                
     #this finds all forces acting on the objects. The forces could be summed, but this is done instead during the acceleration calculations            
     for obj1 in objList:
         thisStep = False
