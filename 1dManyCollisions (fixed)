@@ -1,0 +1,176 @@
+import matplotlib.pyplot as plt
+import random
+numOfObjects = 6
+timeStep = 10
+numOfSteps = 125000
+
+globalSteps = 0
+objList = []
+deadObjList = []
+gravConstant =  6.674 * 10**-11
+time = [0]
+
+def lastInList(objx, propertyx):
+    length = len(objx[propertyx])
+    lastItem = objx[propertyx][length - 1]
+    return lastItem
+
+def testForCollisions(tol):
+    goneThroughList = False
+    while goneThroughList == False:
+        collisionCount = 0
+        for obj1 in objList:
+            for obj2 in objList:
+                if obj1 == obj2 and obj2 == objList[len(objList) - 1]:
+                    goneThroughList = True
+                    break
+                elif obj1 == obj2:
+                    continue
+                #if the objects are within the tolerance variable difference (which I can change as the argument)
+                elif abs(lastInList(obj1, 'positions') - lastInList(obj2, 'positions')) < tol and objList.index(obj1) < len(objList) - collisionCount and objList.index(obj2) < len(objList) - collisionCount:
+                    print 'this step occurred'
+                    #summing the masses to get the mass of the new object
+                    totalMass = obj1['mass'] + obj2['mass']
+                    #summing the momentums to get the total momentum of the new object
+                    netMomentum = obj1['mass'] * obj1['velocity'] + obj2['mass'] * obj2['velocity']
+                    #just choosing the midpoint between the two objects as the new object's position
+                    newPosition = (lastInList(obj1, 'positions') + lastInList(obj2, 'positions')) / 2
+                    #using new object's momentum to find its velocity
+                    newVelocity = netMomentum / totalMass
+                    #making the new object in the list with its new mass, position and velocity
+                    objList.append({'acceleration': 0, 
+                                    'distances': [], 
+                                    'mass': totalMass, 
+                                    'forces': [], 
+                                    'velocity': newVelocity, 
+                                    'positions': [newPosition], 
+                                    'steps': 0, 
+                                    'initStep': globalSteps,
+                                    'deadStep': 0
+                                    })
+                    #setting up deadSteps so I know where on the timeline to plot them later on
+                    obj1['deadStep'] = globalSteps
+                    obj2['deadStep'] = globalSteps
+                    #adding the old objects to a 'dead object' list and removing them from the actual objList
+                    deadObjList.append(obj1)
+                    deadObjList.append(obj2)
+                    objList.remove(obj1)
+                    objList.remove(obj2)
+                    #setting up new object's blank parameters
+                    for item in range(numOfObjects - 1):
+                        objList[len(objList) - 1]['distances'].append(0)
+                        objList[len(objList) - 1]['forces'].append(0)
+   
+                    collisionCount += 1            
+                    break     
+ 
+#function that finds gravitational force between two objects
+def calcGrav(obj1,obj2):
+    if objList.index(obj2) > objList.index(obj1):
+        if obj1['distances'][objList.index(obj2) - 1] != 0:
+            d = obj1['distances'][objList.index(obj2) - 1]
+            f = obj1['mass'] * obj2['mass'] * gravConstant / d**2
+        else:
+            f = 0
+    else:
+        if obj1['distances'][objList.index(obj2)] != 0:
+            d = obj1['distances'][objList.index(obj2)]
+            f = -1 * obj1['mass'] * obj2['mass'] * gravConstant / d**2
+        else:
+            f = 0
+    return f
+
+#this sets up templates for objects
+for obj in range(numOfObjects):
+    objList.append({'acceleration': 0, 
+                    'distances': [], 
+                    'mass': 0, 
+                    'forces': [], 
+                    'velocity': 0, 
+                    'positions': [], 
+                    'steps': 0, 
+                    'initStep': 0, 
+                    'deadStep': 0})
+   
+#this records all masses and positions of objects 
+for obj in objList:
+    print 'For object number', objList.index(obj), ':'
+    print random.random() * 10000
+    print random.random() * 100
+    obj['mass'] = input('Mass?')
+    obj['positions'].append(input('Position?'))
+    
+    #this sets up the empty elements for distances and forces
+    for item in range(numOfObjects - 1):
+        obj['distances'].append(0)
+        obj['forces'].append(0)
+
+while numOfSteps > 0:
+    numOfSteps -= 1
+    globalSteps += 1
+    numOfObjects = len(objList)
+    #I believe this sorts by position but I'm not sure
+    objList.sort(key=lambda objList: objList['positions'])
+    
+    #this finds all distance between objects (includes direction)    
+    for obj1 in objList:
+        obj1['steps'] += 1
+        thisStep = False
+        for obj2 in range(numOfObjects - 1):
+            if objList.index(obj1) == obj2:
+                thisStep = True
+                continue
+            elif thisStep == False:
+                obj1['distances'][obj2] = lastInList(objList[obj2], 'positions') - lastInList(obj1, 'positions')
+            else:
+                obj1['distances'][obj2 - 1] = lastInList(objList[obj2], 'positions') - lastInList(obj1, 'positions')
+
+    #this finds all forces acting on the objects. The forces could be summed, but this is done instead during the acceleration calculations            
+    for obj1 in objList:
+        thisStep = False
+        for obj2 in range(numOfObjects - 1):
+            if objList.index(obj1) == obj2:
+                thisStep = True
+                continue
+            elif thisStep == False:
+                obj1['forces'][obj2] = calcGrav(obj1, objList[obj2])
+            else:
+                obj1['forces'][obj2 - 1] = calcGrav(obj1, objList[obj2])
+    
+    #this finds net acceleration for each object
+    for obj in objList:
+        a = 0
+        for item in range(numOfObjects - 1):
+            a += obj['forces'][item] / obj['mass']
+        obj['acceleration'] = a
+        
+    #this finds new positions and redefines velocities
+    for obj in objList:
+        #s = ut + 0.5at^2
+        s = obj['velocity'] * timeStep + 0.5 * obj['acceleration'] * timeStep**2
+        obj['positions'].append(s + lastInList(obj, 'positions'))
+        
+        obj['velocity'] += obj['acceleration'] * timeStep
+        
+    #this is simply adding to the time array
+    time.append(time[len(time) - 1] + timeStep)
+    
+    #this is using the function defined above to see if any objects are within (argument in brackets) metres of each other
+    testForCollisions(0.1)
+ 
+#this is plotting the current objects
+for obj in objList:
+    initStep = obj['initStep']
+    t = time[initStep:]
+    pos = obj['positions']
+    plt.plot(t, pos)
+    
+#this is plotting the objects that 'died'
+for deadObj in deadObjList:
+    initStep = deadObj['initStep'] 
+    deadStep = deadObj['deadStep'] + 1
+    t = time[initStep:deadStep]
+    pos = deadObj['positions']
+    plt.plot(t, pos)
+    
+plt.show()
