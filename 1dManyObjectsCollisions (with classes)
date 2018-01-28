@@ -1,0 +1,142 @@
+import matplotlib.pyplot as plt
+import numpy as np
+from random import randint
+import time
+#things you can change
+numOfObjects = 10
+timeStep = 200
+numOfSteps = 10000
+gravConstant =  6.674 * 10**-11
+lowMass = 100000
+upMass = 1000000
+lowPos = 0
+upPos = 500
+tol = 0.1
+
+#things you can't change. Not entirely sure why I had to add 1 to numOfSteps but that's what makes it work so yeah
+timeArray = np.arange(0, (numOfSteps + 1) * timeStep, timeStep)
+globalSteps = 0
+objList = []
+deadObjList = []
+
+def lastInList(objx, propertyx):
+    return objx[propertyx][len(objx[propertyx]) - 1]
+
+class InteractiveObject:
+    def __init__(self, mass, velocity, position, initStep):
+        self.accel = 0
+        self.distances = []
+        self.mass = mass
+        self.netForce = 0
+        self.velocity = velocity
+        self.positions = [position]
+        self.steps = 0
+        self.initStep = initStep
+        self.deadStep = 0
+        for i in xrange(numOfObjects):
+            self.distances.append(0)
+        objList.append(self)
+        
+    def asIndex(self):
+        return objList.index(self)
+    
+    def lastPos(self):
+        return self.positions[len(self.positions) - 1]
+            
+    def calcDistances(self):
+        for self2 in objList:
+            diff = self2.lastPos() - self.lastPos()
+            self.distances[self2.asIndex()] = diff  
+                
+    def calcNetForce(self):
+        f = 0
+        for self2 in objList:
+            if abs(self.lastPos() - self2.lastPos()) < tol:
+                continue
+            else:
+                f += self.mass * self2.mass * gravConstant / self.distances[self2.asIndex()]
+        self.netForce = f
+        
+    def calcAccel(self):
+        self.calcNetForce()
+        self.accel = self.netForce / self.mass
+        
+    def calcNextPos(self):
+        self.calcAccel()    
+        s = obj.lastPos() + obj.velocity * timeStep + 0.5 * obj.accel * timeStep*2 
+        self.positions.append(s)
+             
+    def combineObjects(self, self2):
+        totalMass = self.mass + self2.mass
+        netMomentum = self.mass * self.velocity + self2.mass * self2.velocity
+        netVelocity = netMomentum / totalMass
+        netPosition = (self.lastPos() + self2.lastPos()) / 2
+        newObj = InteractiveObject(mass = totalMass,velocity = netVelocity, position = netPosition, initStep = globalSteps)
+    
+    def makeDead(self):
+        self.deadStep = globalSteps
+        deadObjList.append(self)
+        objList.remove(self)
+            
+    def collideObjects(self, self2):
+        self.combineObjects(self2)   
+        #here is where the objects are 'destroyed'
+        self.makeDead()
+        self2.makeDead()
+
+#this creates all objects
+for obj in xrange(numOfObjects):
+    m = randint(lowMass, upMass)
+    p = randint(lowPos, upPos)
+    obj = InteractiveObject(mass = m, velocity = 0, position = p, initStep = 0)
+    
+while numOfSteps > 0:
+    #calculating this for the rest of the while loop up until the collision detection at the end
+    numOfObjects = len(objList)
+    globalSteps += 1
+    print globalSteps
+
+    #finding all distances between all objects
+    for obj in objList:
+        obj.calcDistances()
+
+    #finding next positions of all objects
+    for obj in objList:
+        obj.calcNextPos()
+            
+    #testing to see if any pairs of objects have collided. if so, they are combined into one new object
+    goneThroughList = False
+    while goneThroughList == False:
+        for obj1 in objList:
+            for obj2 in objList:
+                #if we've looped through every object up to the very last
+                if obj1 == obj2 and obj2.asIndex() == numOfObjects - 1:
+                    goneThroughList = True
+                    break
+                elif obj1 == obj2:
+                    continue
+                #if obj1 and obj2 are within some distance 'tol' of each other
+                elif abs(obj1.lastPos() - obj2.lastPos()) < tol: 
+                    obj1.collideObjects(obj2)   
+                    numOfObjects = len(objList)
+                    break
+                
+    numOfSteps -= 1
+                
+for obj in objList:
+    iStep = obj.initStep
+    t = timeArray[iStep:]
+    pos = obj.positions
+    plt.plot(t, pos)
+    
+for obj in deadObjList:
+    iStep = obj.initStep
+    dStep = obj.deadStep + 1
+    t = timeArray[iStep : dStep]
+    pos = obj.positions
+    plt.plot(t, pos)
+    
+plt.xlabel('Time (s)')
+plt.ylabel('Position (m)')
+plt.savefig('/Users/lexgallon/desktop/GravitySimPic', dpi = 3000)
+plt.show()            
