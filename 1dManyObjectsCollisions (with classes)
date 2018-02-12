@@ -63,10 +63,10 @@ class InteractiveObject:                                            #where the m
         
     def calcNextPos(self):                                                                      #use acceleration, initial velocity and time to calculate next position. should also change velocity?
         self.calcAccel()    
-        s = obj.lastPos() + obj.velocity * timeStep + 0.5 * obj.accel * timeStep*2          
+        s = self.lastPos() + self.velocity * timeStep + 0.5 * self.accel * timeStep*2          
         self.positions.append(s)                                                                #I'm not sure if I ever change the velocity even though it really should but tests seem to indicate that everything breaks. might have to update this.
              
-def combineObjects(self, self2):                                                                #where objects get combined and a new object is formed
+    def combineObjects(self, self2):                                                                #where objects get combined and a new object is formed
         totalMass = self.mass + self2.mass
         netMomentum = self.mass * self.velocity + self2.mass * self2.velocity
         netVelocity = netMomentum / totalMass
